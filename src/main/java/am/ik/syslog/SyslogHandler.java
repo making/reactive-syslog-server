@@ -29,6 +29,7 @@ public class SyslogHandler
 				.map(String::trim) //
 				.filter(s -> !s.isEmpty()) //
 				.flatMap(s -> {
+					// syslog drain appends number before '<', why??
 					int index = s.indexOf('<');
 					if (index == -1) {
 						err.error("invalid format string={}", s);
