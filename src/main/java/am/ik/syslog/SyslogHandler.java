@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.ipc.netty.NettyInbound;
 import reactor.ipc.netty.NettyOutbound;
 
@@ -27,6 +28,14 @@ public class SyslogHandler
 				.flatMap(f -> f.collect(Collectors.joining())) //
 				.map(String::trim) //
 				.filter(s -> !s.isEmpty()) //
+				.flatMap(s -> {
+					int index = s.indexOf('<');
+					if (index == -1) {
+						err.error("invalid format string={}", s);
+						return Mono.empty();
+					}
+					return Mono.just(s.substring(index));
+				}) //
 				.map(SyslogPayload::new) //
 				.doOnNext(this::handleMessage) //
 				.subscribe();
