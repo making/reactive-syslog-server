@@ -27,6 +27,7 @@ public class SyslogHandler
 				.flatMap(s -> {
 					int index = s.indexOf('<');
 					if (index == -1) {
+						err.error("invalid format string={}", s);
 						return Mono.empty();
 					}
 					return Mono.just(s.substring(index));
