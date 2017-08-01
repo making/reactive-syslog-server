@@ -1,9 +1,6 @@
 package am.ik.syslog;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import org.springframework.integration.syslog.RFC5424SyslogParser;
 import org.springframework.integration.syslog.SyslogHeaders;
@@ -13,7 +10,7 @@ public class SyslogPayload {
 	final Map<String, ?> payload;
 
 	public SyslogPayload(String line) {
-		this.payload = parser.parse(line, 0, false);
+		this.payload = parser.parse(line.endsWith("]") ? line + " " : line, 0, false);
 	}
 
 	public final Integer facility() {
@@ -56,8 +53,13 @@ public class SyslogPayload {
 		return (String) this.payload.get(SyslogHeaders.MSGID);
 	}
 
-	public final String version() {
-		return (String) this.payload.get(SyslogHeaders.VERSION);
+	@SuppressWarnings("unchecked")
+	public final List<String> structuredData() {
+		return (List<String>) this.payload.get(SyslogHeaders.STRUCTURED_DATA);
+	}
+
+	public final Integer version() {
+		return (Integer) this.payload.get(SyslogHeaders.VERSION);
 	}
 
 	public final Optional<String> errors() {

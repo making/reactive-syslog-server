@@ -19,8 +19,9 @@ public class SyslogHandler
 
 	@Override
 	public Publisher<Void> apply(NettyInbound in, NettyOutbound out) {
-		Flux<SyslogPayload> input = in.receive().asString() //
-				.flatMapIterable(s -> Arrays.asList(s.split(Pattern.quote("\n"))))
+		in.receive() //
+				.asString() //
+				.flatMapIterable(s -> Arrays.asList(s.split(Pattern.quote("\n")))) //
 				.flatMap(s -> {
 					int index = s.indexOf('<');
 					if (index == -1) {
@@ -28,15 +29,17 @@ public class SyslogHandler
 					}
 					return Mono.just(s.substring(index));
 				}) //
-				.map(SyslogPayload::new);
-
-		input.doOnNext(payload -> {
-			log.info(
-					"ts:{}\tfacility:{}\tseverity:{}\thost:{}\tapp:{}\tprocId:{}\tmsgId:{}\t\tmsg:{}",
-					payload.timestamp(), payload.facility(), payload.severityText(),
-					payload.host(), payload.appName(), payload.procId(), payload.msgId(),
-					payload.message().trim());
-		}).subscribe();
+				.map(SyslogPayload::new) //
+				.doOnNext(this::handleMessage) //
+				.subscribe();
 		return Flux.never();
+	}
+
+	void handleMessage(SyslogPayload payload) {
+		log.info(
+				"timestamp:{}\tfacility:{}\tseverity:{}\thost:{}\tapp:{}\tprocId:{}\tmsgId:{}\tmsg:{}\tstructuredData:{}",
+				payload.timestamp(), payload.facility(), payload.severityText(),
+				payload.host(), payload.appName(), payload.procId(), payload.msgId(),
+				payload.message().trim(), payload.structuredData());
 	}
 }
