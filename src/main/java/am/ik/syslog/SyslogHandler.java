@@ -1,5 +1,6 @@
 package am.ik.syslog;
 
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -22,6 +23,7 @@ public class SyslogHandler
 	public Publisher<Void> apply(NettyInbound in, NettyOutbound out) {
 		in.receive() //
 				.asString() //
+				.flatMapIterable(s -> Arrays.asList(s.split("(?<=\n)"))) //
 				.windowUntil(s -> s.endsWith("\n")) //
 				.flatMap(f -> f.collect(Collectors.joining())) //
 				.map(String::trim) //
