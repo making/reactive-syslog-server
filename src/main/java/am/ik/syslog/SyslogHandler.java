@@ -32,7 +32,7 @@ public class SyslogHandler
 					"ts:{}\tfacility:{}\tseverity:{}\thost:{}\tapp:{}\tprocId:{}\tmsgId:{}\t\tmsg:{}",
 					payload.timestamp(), payload.facility(), payload.severityText(),
 					payload.host(), payload.appName(), payload.procId(), payload.msgId(),
-					payload.message());
+					payload.message().trim());
 		}).subscribe();
 		return Flux.never();
 	}

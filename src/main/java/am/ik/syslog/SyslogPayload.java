@@ -2,6 +2,7 @@ package am.ik.syslog;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.integration.syslog.RFC5424SyslogParser;
@@ -40,7 +41,7 @@ public class SyslogPayload {
 	}
 
 	public final String message() {
-		return (String) this.payload.get(SyslogHeaders.MESSAGE);
+		return Objects.toString(this.payload.get(SyslogHeaders.MESSAGE), "");
 	}
 
 	public final String appName() {
