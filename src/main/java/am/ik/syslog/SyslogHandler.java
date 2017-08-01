@@ -37,9 +37,9 @@ public class SyslogHandler
 
 	void handleMessage(SyslogPayload payload) {
 		log.info(
-				"timestamp:{}\tfacility:{}\tseverity:{}\thost:{}\tapp:{}\tprocId:{}\tmsgId:{}\tmsg:{}\tstructuredData:{}",
+				"timestamp:{}\tfacility:{}\tseverity:{}\thost:{}\tapp:{}\tprocId:{}\tmsgId:{}\tstructuredData:{}\tmsg:{}",
 				payload.timestamp(), payload.facility(), payload.severityText(),
 				payload.host(), payload.appName(), payload.procId(), payload.msgId(),
-				payload.message().trim(), payload.structuredData());
+				payload.structuredData(), payload.message().trim());
 	}
 }
