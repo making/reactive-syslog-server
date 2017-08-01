@@ -1,9 +1,8 @@
 package am.ik.syslog;
 
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.BiFunction;
-import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
@@ -23,7 +22,9 @@ public class SyslogHandler
 	public Publisher<Void> apply(NettyInbound in, NettyOutbound out) {
 		in.receive() //
 				.asString() //
-				.flatMapIterable(s -> Arrays.asList(s.split(Pattern.quote("\n")))) //
+				.windowUntil(s -> s.endsWith("\n")) //
+				.flatMap(f -> f.collect(Collectors.joining())) //
+				.map(String::trim) //
 				.flatMap(s -> {
 					int index = s.indexOf('<');
 					if (index == -1) {
