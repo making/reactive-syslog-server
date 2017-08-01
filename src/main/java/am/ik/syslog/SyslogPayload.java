@@ -16,11 +16,11 @@ public class SyslogPayload {
 		this.payload = parser.parse(line, 0, false);
 	}
 
-	public final int facility() {
+	public final Integer facility() {
 		return (Integer) this.payload.get(SyslogHeaders.FACILITY);
 	}
 
-	public final int severity() {
+	public final Integer severity() {
 		return (Integer) this.payload.get(SyslogHeaders.SEVERITY);
 	}
 
