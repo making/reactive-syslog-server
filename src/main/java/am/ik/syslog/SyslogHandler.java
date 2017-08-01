@@ -1,6 +1,7 @@
 package am.ik.syslog;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.regex.Pattern;
 
@@ -16,6 +17,7 @@ import reactor.ipc.netty.NettyOutbound;
 public class SyslogHandler
 		implements BiFunction<NettyInbound, NettyOutbound, Publisher<Void>> {
 	private static final Logger log = LoggerFactory.getLogger("LOG");
+	private static final Logger err = LoggerFactory.getLogger(SyslogHandler.class);
 
 	@Override
 	public Publisher<Void> apply(NettyInbound in, NettyOutbound out) {
@@ -36,6 +38,11 @@ public class SyslogHandler
 	}
 
 	void handleMessage(SyslogPayload payload) {
+		Optional<String> errors = payload.errors();
+		if (errors.isPresent()) {
+			err.error("error={}, undecoded={}", errors.get(), payload.undecoded());
+			return;
+		}
 		log.info(
 				"timestamp:{}\tfacility:{}\tseverity:{}\thost:{}\tapp:{}\tprocId:{}\tmsgId:{}\tstructuredData:{}\tmsg:{}",
 				payload.timestamp(), payload.facility(), payload.severityText(),
