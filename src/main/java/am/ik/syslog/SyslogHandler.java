@@ -18,35 +18,43 @@ public class SyslogHandler
 		implements BiFunction<NettyInbound, NettyOutbound, Publisher<Void>> {
 	private static final Logger log = LoggerFactory.getLogger("LOG");
 	private static final Logger err = LoggerFactory.getLogger(SyslogHandler.class);
+	private static final String LF = "\n";
+	private static final String SPLIT_PATTERN = "(?<=" + LF + ")";
 
 	@Override
 	public Publisher<Void> apply(NettyInbound in, NettyOutbound out) {
-		in.receive() //
-				.asString() //
-				.flatMapIterable(s -> Arrays.asList(s.split("(?<=\n)"))) //
-				.windowUntil(s -> s.endsWith("\n")) //
-				.flatMap(f -> f.collect(Collectors.joining())) //
-				.map(String::trim) //
-				.filter(s -> !s.isEmpty()) //
-				.flatMap(s -> {
-					// syslog drain appends number before '<', why??
-					int index = s.indexOf('<');
-					if (index == -1) {
-						err.error("invalid format string={}", s);
-						return Mono.empty();
-					}
-					return Mono.just(s.substring(index));
-				}) //
-				.map(SyslogPayload::new) //
+		Flux<String> incoming = in.receive().asString();
+		incoming.compose(this::convert) //
 				.doOnNext(this::handleMessage) //
 				.subscribe();
 		return Flux.never();
 	}
 
+	Flux<SyslogPayload> convert(Flux<String> incoming) {
+		return incoming.flatMapIterable(s -> Arrays.asList(s.split(SPLIT_PATTERN))) //
+				.windowUntil(s -> s.endsWith(LF)) //
+				.flatMap(f -> f.collect(Collectors.joining())) //
+				.map(String::trim) //
+				.filter(s -> !s.isEmpty()) //
+				.flatMap(this::skipOctetCounting) //
+				.map(SyslogPayload::new);
+	}
+
+	Publisher<String> skipOctetCounting(String s) {
+		// Ignore octet counting in RFC 6587
+		int index = s.indexOf('<');
+		if (index == -1) {
+			err.error("Unexpected format ({})", s);
+			return Mono.empty();
+		}
+		return Mono.just(s.substring(index));
+	}
+
 	void handleMessage(SyslogPayload payload) {
 		Optional<String> errors = payload.errors();
 		if (errors.isPresent()) {
-			err.error("error={}, undecoded={}", errors.get(), payload.undecoded());
+			err.error("Decode Error ({}), undecoded={}", errors.get(),
+					payload.undecoded());
 			return;
 		}
 		log.info(
