@@ -37,6 +37,7 @@ public class SyslogHandler
 				.map(String::trim) //
 				.filter(s -> !s.isEmpty()) //
 				.flatMap(this::skipOctetCounting) //
+				.onBackpressureDrop(this::onDropped) //
 				.map(SyslogPayload::new);
 	}
 
@@ -48,6 +49,10 @@ public class SyslogHandler
 			return Mono.empty();
 		}
 		return Mono.just(s.substring(index));
+	}
+
+	void onDropped(String s) {
+		err.warn("Dropped!\t", s);
 	}
 
 	void handleMessage(SyslogPayload payload) {
