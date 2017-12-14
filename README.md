@@ -9,7 +9,7 @@ java -jar target/reactive-syslog-server-0.0.1-SNAPSHOT.jar
 This server listens on 10514 port by default.
 
 ```
-echo "<6>1 2017-12-14T05:14:15.000003-07:00 192.0.2.1 myproc 8710 - - Hello World" | nc localhost 10514```
+echo "<6>1 2017-12-14T05:14:15.000003-07:00 192.0.2.1 myproc 8710 - - Hello World" | nc localhost 10514
 ```
 
 If you want this to listen on 514 port: 
