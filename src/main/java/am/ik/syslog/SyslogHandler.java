@@ -52,7 +52,7 @@ public class SyslogHandler
 	}
 
 	void onDropped(String s) {
-		err.warn("Dropped!\t", s);
+		err.warn("Dropped! {}", s);
 	}
 
 	void handleMessage(SyslogPayload payload) {
